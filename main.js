@@ -4,10 +4,11 @@ const BrowserWindow = electron.BrowserWindow;
 
 const parse = require('url').parse;
 const remote = electron.remote;
-//import axios from 'axios'
-//import qs from 'qs'
 const qs = require('qs');
 const fetch = require('node-fetch');
+
+var AWS = require('aws-sdk');
+
 
 const GOOGLE_AUTHORIZATION_URL = 'https://accounts.google.com/o/oauth2/v2/auth'
 const GOOGLE_TOKEN_URL = 'https://www.googleapis.com/oauth2/v4/token'
@@ -19,20 +20,23 @@ let mainWindow
 
 function googleSignIn () {
   getAuthCodeViaSignInFlow()
-    .then(fetchAccessTokens);
+    .then(fetchAccessTokens)
+    .then(generateTemporaryAWSCredentials)
+    .then(result => {
+      console.log('got result', result);
+    })
+    .catch(e => {
+      console.log('error', e);
+    });
+}
 
-    /*
-  const tokens = await fetchAccessTokens(code)
-  const {id, email, name} = await fetchGoogleProfile(tokens.access_token)
-  const providerUser = {
-    uid: id,
-    email,
-    displayName: name,
-    idToken: tokens.id_token,
-  }
-
-  return mySignInFunction(providerUser)
-  */
+function generateTemporaryAWSCredentials(tokenResponse) {
+  const sts = new AWS.STS();
+  return sts.assumeRoleWithWebIdentity({
+    RoleArn: 'arn:aws:iam::729161019481:role/Observer',
+    RoleSessionName: 'electron-elevation',
+    WebIdentityToken: tokenResponse.id_token
+  }).promise();
 }
 
 function fetchAccessTokens (code) {
