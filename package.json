@@ -1,15 +1,18 @@
 {
   "name": "electron-auth",
   "version": "1.0.0",
-  "description": "",
+  "description": "Allows using google to obtain AWS access key/secrets",
   "main": "main.js",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:prowe/electron-aws-auth.git"
+  },
   "scripts": {
-    "start": "electron .",
-    "dist": "electron-builder"
+    "start": "electron ."
   },
   "devDependencies": {
-    "electron": "~1.6.2",
-    "electron-builder": "^19.12.0"
+    "electron": "~1.6.2"
   },
   "dependencies": {
     "aws-sdk": "^2.80.0",
