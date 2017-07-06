@@ -1,3 +1,8 @@
+/**
+ * for more information on how this all works, see:
+ * https://blog.ecliptic.io/google-auth-in-electron-a47b773940ae
+ */
+
 const electron = require('electron');
 const app = electron.app;
 const BrowserWindow = electron.BrowserWindow;
