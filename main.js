@@ -13,13 +13,14 @@ const qs = require('qs');
 const fetch = require('node-fetch');
 
 var AWS = require('aws-sdk');
+AWS.config.region = 'us-east-1';
 
 const GOOGLE_AUTHORIZATION_URL = 'https://accounts.google.com/o/oauth2/v2/auth'
 const GOOGLE_TOKEN_URL = 'https://www.googleapis.com/oauth2/v4/token'
 const GOOGLE_PROFILE_URL = 'https://www.googleapis.com/userinfo/v2/me'
 const GOOGLE_REDIRECT_URI = 'https://localhost'
 const GOOGLE_CLIENT_ID = getFromEnvOrDie('GOOGLE_CLIENT_ID');
-const ROLE_ARN = getFromEnvOrDie('ROLE_ARN');
+const IDENTITY_POOL_ID = getFromEnvOrDie('IDENTITY_POOL_ID');
 
 let mainWindow
 
@@ -27,7 +28,7 @@ app.on('window-all-closed', () => app.quit());
 
 app.on('ready', () => {
   mainWindow = new BrowserWindow({ width: 500, height: 600 });
-
+  
   Promise.resolve(mainWindow)
     .then(getAuthCodeViaSignInFlow)
     .then(fetchAccessTokens)
@@ -88,13 +89,24 @@ function fetchAccessTokens(code) {
 }
 
 function generateTemporaryAWSCredentials(tokenResponse) {
-  console.error('Attempting to obtain AWS credentials using', tokenResponse);
-  const sts = new AWS.STS();
-  return sts.assumeRoleWithWebIdentity({
-    RoleArn: ROLE_ARN,
-    RoleSessionName: 'electron-elevation',
-    WebIdentityToken: tokenResponse.id_token
-  }).promise();
+  console.error('Attempting to obtain Cognito', tokenResponse);
+
+  AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+      IdentityPoolId: IDENTITY_POOL_ID,
+      Logins: {
+        'accounts.google.com': tokenResponse.id_token
+      }
+  });
+
+  return new Promise((resolve, reject) => {
+    AWS.config.credentials.get(function(err){
+        if (err) {
+          reject(err);
+        } else {
+          resolve(AWS.config.credentials);
+        }
+    });
+  });
 }
 
 function getFromEnvOrDie(key) {
@@ -106,9 +118,9 @@ function getFromEnvOrDie(key) {
   return value;
 }
 
-function printExportCommand(stsReponse) {
-  const creds = stsReponse.Credentials;
-  console.log(`export AWS_ACCESS_KEY_ID='${creds.AccessKeyId}'`);
-  console.log(`export AWS_SECRET_ACCESS_KEY='${creds.SecretAccessKey}'`);
-  console.log(`export AWS_SESSION_TOKEN='${creds.SessionToken}'`);
+function printExportCommand(creds) {
+  console.error('Expire time', creds.expireTime);
+  console.log(`export AWS_ACCESS_KEY_ID='${creds.accessKeyId}'`);
+  console.log(`export AWS_SECRET_ACCESS_KEY='${creds.secretAccessKey}'`);
+  console.log(`export AWS_SESSION_TOKEN='${creds.sessionToken}'`);
 }
