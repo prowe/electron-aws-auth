@@ -1,0 +1,54 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: |
+  This template creates a Cognito identity pool and associated resources
+  that allow a user to login to AWS via their Source Allies Google credentials
+  and obtain temporary access keys so that the AWS CLI and APIs can be used.
+Parameters:
+  GoogleClientId:
+    Type: String
+    Description: "OAuth 2.0 client id from Google"
+    Default: "623591274072-kvu1ue0tq9oabke17r80itgpbam81i5f.apps.googleusercontent.com"
+  AssumedRoleManagedPolicyARNs:
+    Type: CommaDelimitedList
+    Description: "ARN of a IAM Managed policies that users signed in with google will assume"
+    Default: "arn:aws:iam::aws:policy/AdministratorAccess"
+Resources:
+  IdentityPool:
+    Type: "AWS::Cognito::IdentityPool"
+    Properties:
+      AllowUnauthenticatedIdentities: false
+      SupportedLoginProviders:
+        "accounts.google.com": !Ref GoogleClientId
+  FederatedUserRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement: 
+        - Effect: Allow
+          Action: "sts:AssumeRoleWithWebIdentity"
+          Principal:
+            Federated: "cognito-identity.amazonaws.com"
+      ManagedPolicyArns: !Ref AssumedRoleManagedPolicyARNs
+#  RoleAttachments:
+#    Type: "AWS::Cognito::IdentityPoolRoleAttachment"
+#    Properties:
+#      IdentityPoolId: !Ref IdentityPool
+#      Roles: {} 
+#      RoleMappings: 
+#        "accounts.google.com":
+#          AmbiguousRoleResolution: Deny
+#          Type: Rules
+#          RulesConfiguration:
+#          - Claim: hd
+#            MatchType: Equals
+#            Value: "sourceallies.com"
+#            RoleARN: !Ref FederatedUserRole
+Outputs:
+  GoogleClientId:
+    Description: OAuth Client ID to use when obtaining tokens
+    Value: !Ref GoogleClientId
+  IdentityPoolId:
+    Description: ID of the Cognito Identity Pool that should be used to login
+    Value: !Ref IdentityPool
+
