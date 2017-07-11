@@ -29,6 +29,9 @@ Resources:
           Action: "sts:AssumeRoleWithWebIdentity"
           Principal:
             Federated: "cognito-identity.amazonaws.com"
+          Condition:
+            StringEquals:
+              "cognito-identity.amazonaws.com:aud": !Ref IdentityPool
       ManagedPolicyArns: !Ref AssumedRoleManagedPolicyARNs
   RoleAttachments:
     # Warning! this resource "cannot be updated"
