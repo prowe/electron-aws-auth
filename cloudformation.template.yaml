@@ -30,20 +30,22 @@ Resources:
           Principal:
             Federated: "cognito-identity.amazonaws.com"
       ManagedPolicyArns: !Ref AssumedRoleManagedPolicyARNs
-#  RoleAttachments:
-#    Type: "AWS::Cognito::IdentityPoolRoleAttachment"
-#    Properties:
-#      IdentityPoolId: !Ref IdentityPool
-#      Roles: {} 
-#      RoleMappings: 
-#        "accounts.google.com":
-#          AmbiguousRoleResolution: Deny
-#          Type: Rules
-#          RulesConfiguration:
-#          - Claim: hd
-#            MatchType: Equals
-#            Value: "sourceallies.com"
-#            RoleARN: !Ref FederatedUserRole
+  RoleAttachments:
+    # Warning! this resource "cannot be updated"
+    Type: "AWS::Cognito::IdentityPoolRoleAttachment"
+    Properties:
+      Roles: {}
+      IdentityPoolId: !Ref IdentityPool
+      RoleMappings: 
+        "accounts.google.com":
+          AmbiguousRoleResolution: Deny
+          Type: Rules
+          RulesConfiguration:
+            Rules:
+            - MatchType: Equals
+              Value: sourceallies.com
+              Claim: hd
+              RoleARN: !GetAtt FederatedUserRole.Arn
 Outputs:
   GoogleClientId:
     Description: OAuth Client ID to use when obtaining tokens
