@@ -7,7 +7,7 @@ Parameters:
   GoogleClientId:
     Type: String
     Description: "OAuth 2.0 client id from Google"
-    Default: "623591274072-kvu1ue0tq9oabke17r80itgpbam81i5f.apps.googleusercontent.com"
+    Default: "131506248849-73u9trpcni7vvdarbug93sb2r9hnn3fj.apps.googleusercontent.com"
   AssumedRoleManagedPolicyARNs:
     Type: CommaDelimitedList
     Description: "ARN of a IAM Managed policies that users signed in with google will assume"
